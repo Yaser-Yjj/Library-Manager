@@ -12,7 +12,32 @@ class BookModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['title', 'author', 'description', 'isbn', 'price', 'stock_quantity'];
+    protected $allowedFields    = ['title', 'author', 'description', 'isbn', 'price', 'stock_quantity', 'cover_image'];
+
+    /**
+     * Get book cover URL with fallback
+     * Priority: Local asset -> External URL -> Default placeholder
+     */
+    public static function getCoverUrl(?string $coverImage, string $title = 'Book'): string
+    {
+        // If cover_image is set
+        if (!empty($coverImage)) {
+            // Check if it's a URL (external image)
+            if (filter_var($coverImage, FILTER_VALIDATE_URL)) {
+                return $coverImage;
+            }
+            
+            // Check if local file exists
+            $localPath = FCPATH . 'uploads/covers/' . $coverImage;
+            if (file_exists($localPath)) {
+                return base_url('uploads/covers/' . $coverImage);
+            }
+        }
+        
+        // Return a placeholder with book initials
+        $initials = strtoupper(substr($title, 0, 2));
+        return 'https://placehold.co/300x450/667eea/ffffff?text=' . urlencode($initials);
+    }
 
     protected $useTimestamps = true;
     protected $dateFormat    = 'datetime';
